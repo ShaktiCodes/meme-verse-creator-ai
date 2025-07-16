@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Download, Sparkles, Shuffle, TrendingUp, Zap } from "lucide-react";
+import { Download, Sparkles, Shuffle, TrendingUp, Zap, Globe, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,21 +80,71 @@ export const MemeGenerator = () => {
   const [topic, setTopic] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState("");
+  const [useHuggingFace, setUseHuggingFace] = useState(true);
+  const [hfApiKey, setHfApiKey] = useState("");
   const memeCanvasRef = useRef<HTMLDivElement>(null);
 
-  const generateMemeText = async () => {
-    if (!topic.trim()) {
-      toast.error("Please enter a topic first!");
-      return;
-    }
+  const generateWithHuggingFace = async () => {
+    try {
+      const response = await fetch(
+        "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
+        {
+          headers: {
+            Authorization: hfApiKey ? `Bearer ${hfApiKey}` : undefined,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({
+            inputs: `Create a funny meme about ${topic}. Make it short and punchy with top and bottom text.`,
+            parameters: {
+              max_length: 100,
+              temperature: 0.9,
+            },
+          }),
+        }
+      );
 
-    if (!apiKey.trim()) {
-      toast.error("Please enter your OpenAI API key!");
-      return;
-    }
+      if (!response.ok) {
+        throw new Error('Hugging Face API failed');
+      }
 
-    setIsGenerating(true);
+      const result = await response.json();
+      const generated = result[0]?.generated_text || result.generated_text || "";
+      
+      // Parse the generated text into top and bottom
+      const lines = generated.split('\n').filter((line: string) => line.trim());
+      const topLine = lines[0] || `When ${topic}`;
+      const bottomLine = lines[1] || "It be like that sometimes";
+      
+      setTopText(topLine);
+      setBottomText(bottomLine);
+      toast.success("Meme text generated with Hugging Face! 🤗");
+    } catch (error) {
+      console.error('Hugging Face error:', error);
+      // Fallback to predefined funny responses
+      generateFallbackMeme();
+    }
+  };
+
+  const generateFallbackMeme = () => {
+    const fallbackMemes = [
+      { top: `When ${topic}`, bottom: "It be like that sometimes" },
+      { top: "Me trying to understand", bottom: topic },
+      { top: topic, bottom: "Why must you be like this?" },
+      { top: "POV: You're dealing with", bottom: topic },
+      { top: `${topic} hits different`, bottom: "Change my mind" },
+      { top: "Nobody:", bottom: `${topic}: Allow me to introduce myself` },
+      { top: "Me: I won't let this affect me", bottom: `Also me: *affected by ${topic}*` },
+      { top: `${topic} be like`, bottom: "I'm about to end this person's whole career" },
+    ];
     
+    const randomMeme = fallbackMemes[Math.floor(Math.random() * fallbackMemes.length)];
+    setTopText(randomMeme.top);
+    setBottomText(randomMeme.bottom);
+    toast.success("Meme text generated! 🎭");
+  };
+
+  const generateWithOpenAI = async () => {
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -141,6 +191,27 @@ export const MemeGenerator = () => {
     } catch (error) {
       console.error('Error generating meme:', error);
       toast.error("Failed to generate meme text. Check your API key!");
+    }
+  };
+
+  const generateMemeText = async () => {
+    if (!topic.trim()) {
+      toast.error("Please enter a topic first!");
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      if (useHuggingFace) {
+        await generateWithHuggingFace();
+      } else {
+        if (!apiKey.trim()) {
+          toast.error("Please enter your OpenAI API key!");
+          return;
+        }
+        await generateWithOpenAI();
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -195,25 +266,66 @@ export const MemeGenerator = () => {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Panel - Controls */}
           <div className="space-y-6">
-            {/* API Key Input */}
+            {/* AI Generation Options */}
             <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-accent" />
-                  OpenAI API Key
+                  <Settings className="w-5 h-5 text-accent" />
+                  AI Generation Options
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <Input
-                  type="password"
-                  placeholder="Enter your OpenAI API key..."
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Your API key is stored locally and never sent to our servers.
-                </p>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={() => setUseHuggingFace(true)}
+                    variant={useHuggingFace ? "gradient" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <Globe className="w-4 h-4" />
+                    Free AI (Recommended)
+                  </Button>
+                  <Button
+                    onClick={() => setUseHuggingFace(false)}
+                    variant={!useHuggingFace ? "gradient" : "outline"}
+                    size="sm"
+                    className="flex-1"
+                  >
+                    <Zap className="w-4 h-4" />
+                    OpenAI (Premium)
+                  </Button>
+                </div>
+
+                {useHuggingFace ? (
+                  <div className="space-y-2">
+                    <Label>Hugging Face API Key (Optional - Better results)</Label>
+                    <Input
+                      type="password"
+                      placeholder="hf_... (optional for improved generation)"
+                      value={hfApiKey}
+                      onChange={(e) => setHfApiKey(e.target.value)}
+                    />
+                    <div className="bg-accent/20 border border-accent/30 rounded-lg p-3">
+                      <p className="text-sm text-accent-foreground">
+                        ✨ <strong>FREE MODE:</strong> Works without any API key! 
+                        Smart fallback generates funny memes instantly.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>OpenAI API Key (Required)</Label>
+                    <Input
+                      type="password"
+                      placeholder="sk-..."
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your API key is stored locally and never sent to our servers.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
