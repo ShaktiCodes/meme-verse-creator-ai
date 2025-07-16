@@ -2,39 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Meme Generator Design System - Vibrant & Playful */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Base colors - Dark background for better meme contrast */
+    --background: 240 10% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Card system with glassmorphism */
+    --card: 240 10% 12%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 240 10% 12%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Vibrant primary colors - Electric blue */
+    --primary: 220 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 220 100% 75%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Fun secondary - Hot pink */
+    --secondary: 320 100% 65%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted with personality */
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 5% 70%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Neon accent - Electric green */
+    --accent: 140 100% 60%;
+    --accent-foreground: 140 100% 10%;
 
+    /* Keep destructive for errors */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and inputs */
+    --border: 240 10% 25%;
+    --input: 240 10% 18%;
+    --ring: 220 100% 60%;
+
+    /* Meme-specific colors */
+    --meme-text: 0 0% 100%;
+    --meme-text-stroke: 0 0% 0%;
+    --meme-overlay: 0 0% 0% / 0.6;
+
+    /* Vibrant gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(220 100% 60%), hsl(280 100% 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(320 100% 65%), hsl(30 100% 60%));
+    --gradient-accent: linear-gradient(135deg, hsl(140 100% 60%), hsl(180 100% 50%));
+    --gradient-rainbow: linear-gradient(90deg, 
+      hsl(0 100% 60%), 
+      hsl(60 100% 60%), 
+      hsl(120 100% 60%), 
+      hsl(180 100% 60%), 
+      hsl(240 100% 60%), 
+      hsl(300 100% 60%)
+    );
+
+    /* Glassmorphism effects */
+    --glass-bg: 240 10% 15% / 0.8;
+    --glass-border: 0 0% 100% / 0.1;
+
+    /* Shadows and glows */
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+    --shadow-neon: 0 0 20px hsl(var(--accent) / 0.5);
+    --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.3);
 
     --radius: 0.5rem;
 
@@ -102,4 +136,98 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply backdrop-blur-md border;
+    background: hsl(var(--glass-bg));
+    border-color: hsl(var(--glass-border));
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Rainbow text */
+  .rainbow-text {
+    background: var(--gradient-rainbow);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 300% 300%;
+    animation: rainbow-flow 4s linear infinite;
+  }
+
+  /* Meme text style */
+  .meme-text {
+    color: hsl(var(--meme-text));
+    text-shadow: 
+      -2px -2px 0 hsl(var(--meme-text-stroke)),
+      2px -2px 0 hsl(var(--meme-text-stroke)),
+      -2px 2px 0 hsl(var(--meme-text-stroke)),
+      2px 2px 0 hsl(var(--meme-text-stroke));
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Hover glow effect */
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+  }
+
+  /* Neon glow */
+  .neon-glow {
+    box-shadow: var(--shadow-neon);
+  }
+}
+
+@layer utilities {
+  /* Custom animations */
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes rainbow-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { 
+      opacity: 1;
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    }
+    50% { 
+      opacity: 0.8;
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
+    }
+  }
+
+  /* Animation classes */
+  .animate-gradient-shift { animation: gradient-shift 3s ease infinite; }
+  .animate-rainbow-flow { animation: rainbow-flow 4s linear infinite; }
+  .animate-bounce-subtle { animation: bounce-subtle 2s ease-in-out infinite; }
+  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 }
